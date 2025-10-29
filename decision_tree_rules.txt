@@ -1,0 +1,37 @@
+|--- fixed_income_products_value <= 982409.31
+|   |--- monthly_trade_amount <= 115931.34
+|   |   |--- investment_monthly_count <= 20.50
+|   |   |   |--- credit_card_monthly_expense <= 84413.07
+|   |   |   |   |--- class: 0
+|   |   |   |--- credit_card_monthly_expense >  84413.07
+|   |   |   |   |--- class: 0
+|   |   |--- investment_monthly_count >  20.50
+|   |   |   |--- app_financial_view_time <= 9.00
+|   |   |   |   |--- class: 1
+|   |   |   |--- app_financial_view_time >  9.00
+|   |   |   |   |--- class: 0
+|   |--- monthly_trade_amount >  115931.34
+|   |   |--- app_financial_view_time <= 3549.50
+|   |   |   |--- monthly_trade_amount <= 123992.46
+|   |   |   |   |--- class: 0
+|   |   |   |--- monthly_trade_amount >  123992.46
+|   |   |   |   |--- class: 0
+|   |   |--- app_financial_view_time >  3549.50
+|   |   |   |--- age <= 68.50
+|   |   |   |   |--- class: 0
+|   |   |   |--- age >  68.50
+|   |   |   |   |--- class: 1
+|--- fixed_income_products_value >  982409.31
+|   |--- stock_portfolio_value <= 120152.65
+|   |   |--- class: 1
+|   |--- stock_portfolio_value >  120152.65
+|   |   |--- app_product_compare_count <= 20.00
+|   |   |   |--- product_count <= 1.50
+|   |   |   |   |--- class: 0
+|   |   |   |--- product_count >  1.50
+|   |   |   |   |--- class: 0
+|   |   |--- app_product_compare_count >  20.00
+|   |   |   |--- monthly_trade_amount <= 153570.12
+|   |   |   |   |--- class: 1
+|   |   |   |--- monthly_trade_amount >  153570.12
+|   |   |   |   |--- class: 0

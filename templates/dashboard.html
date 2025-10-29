@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百万客群经营可视化大屏</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0a1929;
+            color: #ffffff;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 0.8fr;
+            gap: 20px;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .chart-card {
+            background-color: #142a42;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #d4af37;
+            border-bottom: 1px solid #284a6e;
+            padding-bottom: 8px;
+            flex-shrink: 0;
+        }
+        
+        .chart-container {
+            flex: 1;
+            min-height: 0;
+        }
+        
+        /* 左上角 - 用户画像分析区 */
+        .user-profile {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        
+        /* 右上角 - 资产行为分析区 */
+        .asset-behavior {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        /* 左下角 - 营销效果分析区 */
+        .marketing-effect {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        /* 右下角 - 综合指标区 */
+        .comprehensive-metrics {
+            grid-column: 2;
+            grid-row: 2;
+        }
+        
+        /* 中央 - 核心指标概览区 */
+        .core-overview {
+            grid-column: 1 / span 2;
+            grid-row: 3;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 20px;
+            flex: 1;
+            background-color: #1a365d;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin: 0 10px;
+            min-width: 0;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            margin: 10px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #a0b0c0;
+        }
+        
+        .filter-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(20, 42, 66, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            z-index: 100;
+            width: 240px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .filter-panel-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #d4af37;
+            text-align: center;
+            border-bottom: 1px solid #284a6e;
+            padding-bottom: 10px;
+        }
+        
+        .filter-item {
+            margin-bottom: 20px;
+        }
+        
+        .filter-item label {
+            display: block;
+            margin-bottom: 8px;
+            color: #a0b0c0;
+            font-size: 14px;
+        }
+        
+        .filter-item select, .filter-item input {
+            width: 100%;
+            padding: 10px;
+            background-color: #0a1929;
+            color: white;
+            border: 1px solid #284a6e;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .filter-item button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .filter-item button:hover {
+            background-color: #218838;
+        }
+        
+        /* 特别优化雷达图容器 */
+        .user-profile .chart-container {
+            min-height: 250px;
+        }
+        
+        /* 特别优化堆叠柱状图容器 */
+        .asset-behavior .chart-container {
+            min-height: 250px;
+        }
+        
+        /* 特别优化折线图容器 */
+        .marketing-effect .chart-container {
+            min-height: 250px;
+        }
+        
+        /* 特别优化仪表盘容器 */
+        .comprehensive-metrics .chart-container {
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1600px) {
+            .dashboard-container {
+                gap: 15px;
+                padding: 15px;
+            }
+            
+            .filter-panel {
+                top: 15px;
+                right: 15px;
+                width: 200px;
+                padding: 15px;
+            }
+            
+            .filter-panel-title {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+            
+            .filter-item {
+                margin-bottom: 15px;
+            }
+        }
+        
+        @media (max-width: 1400px) {
+            .dashboard-container {
+                gap: 10px;
+                padding: 10px;
+            }
+            
+            .filter-panel {
+                top: 10px;
+                right: 10px;
+                width: 180px;
+                padding: 10px;
+            }
+            
+            .metric-value {
+                font-size: 20px;
+            }
+            
+            .metric-card {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 筛选器面板 -->
+    <div class="filter-panel">
+        <div class="filter-panel-title">筛选条件</div>
+        <div class="filter-item">
+            <label for="time-range">时间范围</label>
+            <select id="time-range">
+                <option value="month">按月</option>
+                <option value="quarter">按季度</option>
+                <option value="year">按年</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label for="user-group">用户分群</label>
+            <select id="user-group">
+                <option value="all">全部用户</option>
+                <option value="high-value">高价值用户</option>
+                <option value="medium-value">中等价值用户</option>
+                <option value="low-value">低价值用户</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label for="city-level">城市等级</label>
+            <select id="city-level">
+                <option value="all">全部</option>
+                <option value="tier-1">一线城市</option>
+                <option value="tier-2">二线城市</option>
+                <option value="tier-3">三线城市</option>
+                <option value="tier-4">四线城市</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <button onclick="refreshData()">刷新数据</button>
+        </div>
+    </div>
+
+    <!-- 大屏容器 -->
+    <div class="dashboard-container">
+        <!-- 左上角 - 用户画像分析区 (雷达图) -->
+        <div class="chart-card user-profile">
+            <div class="chart-title">用户画像分析</div>
+            <div id="user-profile-chart" class="chart-container"></div>
+        </div>
+        
+        <!-- 右上角 - 资产行为分析区 (堆叠柱状图) -->
+        <div class="chart-card asset-behavior">
+            <div class="chart-title">资产行为分析</div>
+            <div id="asset-behavior-chart" class="chart-container"></div>
+        </div>
+        
+        <!-- 左下角 - 营销效果分析区 (折线图) -->
+        <div class="chart-card marketing-effect">
+            <div class="chart-title">营销效果分析</div>
+            <div id="marketing-effect-chart" class="chart-container"></div>
+        </div>
+        
+        <!-- 右下角 - 综合指标区 (仪表盘/环形图 + 数字指标) -->
+        <div class="chart-card comprehensive-metrics">
+            <div class="chart-title">综合指标</div>
+            <div id="comprehensive-metrics-chart" class="chart-container"></div>
+        </div>
+        
+        <!-- 中央 - 核心指标概览区 (数字指标卡) -->
+        <div class="chart-card core-overview">
+            <div class="metric-card">
+                <div class="metric-label">当前总用户数</div>
+                <div class="metric-value" id="total-users">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">总资产管理规模</div>
+                <div class="metric-value" id="total-assets">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">本月新增用户数</div>
+                <div class="metric-value" id="new-users">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">用户平均生命周期价值</div>
+                <div class="metric-value" id="avg-ltv">0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化图表
+        var userProfileChart = echarts.init(document.getElementById('user-profile-chart'));
+        var assetBehaviorChart = echarts.init(document.getElementById('asset-behavior-chart'));
+        var marketingEffectChart = echarts.init(document.getElementById('marketing-effect-chart'));
+        var comprehensiveMetricsChart = echarts.init(document.getElementById('comprehensive-metrics-chart'));
+        
+        // 设置用户画像分析图（雷达图）
+        function setUserProfileChart(data) {
+            var option = {
+                radar: {
+                    indicator: data.indicator,
+                    shape: 'circle',
+                    splitNumber: 5,
+                    axisName: {
+                        color: '#a0b0c0'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    },
+                    splitArea: {
+                        show: false
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'radar',
+                    data: data.data
+                }],
+                color: ['#d4af37', '#28a745']
+            };
+            userProfileChart.setOption(option);
+        }
+        
+        // 设置资产行为分析图（堆叠柱状图）
+        function setAssetBehaviorChart(data) {
+            var option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: data.legend,
+                    textStyle: {
+                        color: '#a0b0c0'
+                    },
+                    top: 'bottom'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.xAxis,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#a0b0c0'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#a0b0c0'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    }
+                },
+                series: data.series
+            };
+            assetBehaviorChart.setOption(option);
+        }
+        
+        // 设置营销效果分析图（折线图）
+        function setMarketingEffectChart(data) {
+            var option = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: data.legend,
+                    textStyle: {
+                        color: '#a0b0c0'
+                    },
+                    top: 'bottom'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: data.xAxis,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#a0b0c0'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    },
+                    axisLabel: {
+                        color: '#a0b0c0'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#284a6e'
+                        }
+                    }
+                },
+                series: data.series
+            };
+            marketingEffectChart.setOption(option);
+        }
+        
+        // 设置综合指标图（仪表盘/环形图）
+        function setComprehensiveMetricsChart(data) {
+            var option = {
+                series: [{
+                    type: 'gauge',
+                    startAngle: 180,
+                    endAngle: 0,
+                    min: 0,
+                    max: 100,
+                    splitNumber: 5,
+                    axisLine: {
+                        lineStyle: {
+                            width: 15,
+                            color: [
+                                [0.3, '#dc3545'],
+                                [0.7, '#d4af37'],
+                                [1, '#28a745']
+                            ]
+                        }
+                    },
+                    pointer: {
+                        icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z',
+                        length: '12%',
+                        width: 20,
+                        offsetCenter: [0, '-60%'],
+                        itemStyle: {
+                            color: 'auto'
+                        }
+                    },
+                    axisTick: {
+                        length: 12,
+                        lineStyle: {
+                            color: 'auto',
+                            width: 2
+                        }
+                    },
+                    splitLine: {
+                        length: 20,
+                        lineStyle: {
+                            color: 'auto',
+                            width: 5
+                        }
+                    },
+                    axisLabel: {
+                        color: '#a0b0c0',
+                        fontSize: 12,
+                        distance: -60,
+                    },
+                    title: {
+                        offsetCenter: [0, '-10%'],
+                        fontSize: 14
+                    },
+                    detail: {
+                        fontSize: 24,
+                        offsetCenter: [0, '-35%'],
+                        valueAnimation: true,
+                        formatter: function (value) {
+                            return '{value|' + value.toFixed(1) + '}{unit|%}';
+                        },
+                        rich: {
+                            value: {
+                                color: '#d4af37',
+                                fontSize: 24,
+                                fontWeight: 'bolder'
+                            },
+                            unit: {
+                                color: '#a0b0c0',
+                                fontSize: 12
+                            }
+                        }
+                    },
+                    data: [{
+                        value: data.conversion_rate,
+                        name: '转化率'
+                    }]
+                }]
+            };
+            comprehensiveMetricsChart.setOption(option);
+        }
+        
+        // 更新核心指标概览数据
+        function updateCoreOverview(data) {
+            document.getElementById('total-users').innerText = data.total_users.toLocaleString();
+            document.getElementById('total-assets').innerText = (data.total_assets / 100000000).toFixed(2) + '亿';
+            document.getElementById('new-users').innerText = data.new_users.toLocaleString();
+            document.getElementById('avg-ltv').innerText = data.avg_ltv.toLocaleString();
+        }
+        
+        // 刷新数据
+        function refreshData() {
+            // 获取并更新用户画像分析数据
+            fetch('/api/user_profile')
+                .then(response => response.json())
+                .then(data => setUserProfileChart(data));
+            
+            // 获取并更新资产行为分析数据
+            fetch('/api/asset_behavior')
+                .then(response => response.json())
+                .then(data => setAssetBehaviorChart(data));
+            
+            // 获取并更新营销效果分析数据
+            fetch('/api/marketing_effect')
+                .then(response => response.json())
+                .then(data => setMarketingEffectChart(data));
+            
+            // 获取并更新综合指标数据
+            fetch('/api/comprehensive_metrics')
+                .then(response => response.json())
+                .then(data => {
+                    setComprehensiveMetricsChart(data);
+                    // 更新其他综合指标显示
+                    document.getElementById('comprehensive-metrics-chart').innerHTML += 
+                        `<div style="text-align:center;margin-top:10px;color:#a0b0c0;font-size:14px;">
+                            <p>总用户数: ${data.total_users.toLocaleString()}</p>
+                            <p>高价值用户数: ${data.high_value_users.toLocaleString()}</p>
+                            <p>平均用户资产: ${(data.avg_assets/10000).toFixed(2)}万元</p>
+                            <p>用户活跃度: ${data.user_activity.toFixed(1)}%</p>
+                        </div>`;
+                });
+            
+            // 获取并更新核心指标概览数据
+            fetch('/api/core_overview')
+                .then(response => response.json())
+                .then(data => updateCoreOverview(data));
+        }
+        
+        // 页面加载完成后自动刷新数据
+        window.addEventListener('load', function() {
+            refreshData();
+            
+            // 设置定时刷新（每5分钟）
+            setInterval(refreshData, 300000);
+        });
+        
+        // 窗口大小改变时重置图表大小
+        window.addEventListener('resize', function() {
+            setTimeout(function() {
+                userProfileChart.resize();
+                assetBehaviorChart.resize();
+                marketingEffectChart.resize();
+                comprehensiveMetricsChart.resize();
+            }, 100);
+        });
+    </script>
+</body>
+</html>
